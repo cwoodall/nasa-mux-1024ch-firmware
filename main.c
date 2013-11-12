@@ -221,6 +221,7 @@ __interrupt void USCI0RX_ISR(void)
 }
 
 // FIXME: Rework math to be more exact on how to calculate the oscillation frequency
+
 #pragma vector=TIMER1_A0_VECTOR
 __interrupt void Timer1_A0(void) {
   static uint16_t counter = 0;
