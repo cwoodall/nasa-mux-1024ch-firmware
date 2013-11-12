@@ -11,15 +11,16 @@
 #include <stdint.h>
 #include "spi/spi.h"
 
-void DAC7512_shiftreg_init();
-void DAC7512_shiftreg_load(uint8_t row_d, uint8_t col_d);
+__inline void DAC7512_set_addr(uint16_t addr);
 
+__inline void DAC7512_unset_addr();
+void DAC7512_addr_init();
 void DAC7512_init(spi_device_t *dev);
-void DAC7512_send(spi_device_t *dev, uint16_t data, uint8_t r, uint8_t c);
+
+void DAC7512_send(spi_device_t *dev, uint16_t data, uint8_t addr);
 
 int16_t DAC7512_chip_select(uint16_t cs_arg);
 
 int16_t DAC7512_chip_release(uint16_t cs_arg);
-
 
 #endif /* DAC7512_H_ */

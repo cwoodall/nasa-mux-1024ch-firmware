@@ -26,11 +26,11 @@ The basic packet format is as follows in Table 1:
 
 There are _magic_ bytes which effect the packets:
 
-| Name           | Magic Byte | Description                                          |
-|----------------|------------|------------------------------------------------------|
-| _ESCAPE_       |       0x80 | Escapes magic bytes to deactivates their magical properties. |
-| _FRAME\_START_ |       0x81 | Indicates the start and the end of a packet, unless escaped. |
-| _FRAME\_END_   |       0x82 | Indicates the start and the end of a packet, unless escaped. |
+| Name        | Magic Byte | Description                                          |
+|-------------|------------|------------------------------------------------------|
+| ESCAPE      |       0x80 | Escapes magic bytes to deactivates their magical properties. |
+| FRAME_START |       0x81 | Indicates the start and the end of a packet, unless escaped. |
+| FRAME_END   |       0x82 | Indicates the start and the end of a packet, unless escaped. |
 
 The _magic_ bytes must be escaped if they must occur in data. For example, if I wanted to send a 0x81 in the data then I will need to escape it and send two bytes instead of one.
 I would then send `0x80 0x81`.
@@ -87,28 +87,28 @@ Example Packet:
 
 #### WR_REG: Write Register (0x85)
 
-Data Format (n = 3):
+Data Format (n = 4):
 
 |Name     | Bytes | Description         |
 |---------|-------|---------------------|
-| Address | 1     | Address MSB First   |
+| Address | 2     | Address MSB First   |
 | Data    | 2     | Data sent MSB first |
 
 Response: ACK with data length = 0.
 
 Example Packet (Turn off LED):
 
-| __Time__   |  0   |   1  |  2   |  3   |  4   |  5   |   6  | 7
-|------------|------|------|------|------|------|------|------|------
-| __Packet__ | 0x81 | 0x85 | 0x00 | 0x00 | 0x00 | 0x29 | 0x28 | 0x82
+| __Time__   |  0   |   1  |  2   |  3   |  4   |  5   |  6   |   7  | 8
+|------------|------|------|------|------|------|------|------|------|------
+| __Packet__ | 0x81 | 0x85 | 0x00 | 0x00 | 0x00 | 0x00 | 0x29 | 0x28 | 0x82
 
-#### READ_REG: Read Register  (0x86)
+#### ~READ_REG: Read Register  (0x86)~
 
-Data Format (n = 1):
+Data Format (n = 2):
 
 |Name     | Bytes | Description         |
 |---------|-------|---------------------|
-| Address | 1     | Address MSB First   |
+| Address | 2     | Address MSB First   |
 
 Response: ACK with data length = 2, which contains the 16 bits in the register. MSB first.
 
@@ -255,43 +255,27 @@ printf("Formatted to be sent: { 0x%02x, 0x%02x }", crc&0xff, crc>>8)
 
 ### Address Table
 
-| Name          | Address   | Description 
-|---------------|-----------|-------------
-| Settings      | 0x00      | Settings Register: Bit 0 controls the Red LED on the MSP430
-| AD5504 #1     | 0x10      | The bottom 12 bits control the value of AD5504 1  (R1C1)
-| AD5504 #2     | 0x11      | The bottom 12 bits control the value of AD5504 2  (R1C2)  
-| AD5504 #3     | 0x12      | The bottom 12 bits control the value of AD5504 3  (R1C3)  
-| AD5504 #4     | 0x13      | The bottom 12 bits control the value of AD5504 4  (R1C4)  
-| AD5504 #5     | 0x14      | The bottom 12 bits control the value of AD5504 5  (R2C1)  
-| AD5504 #6     | 0x15      | The bottom 12 bits control the value of AD5504 6  (R2C2)  
-| AD5504 #7     | 0x16      | The bottom 12 bits control the value of AD5504 7  (R2C3)  
-| AD5504 #8     | 0x17      | The bottom 12 bits control the value of AD5504 8  (R2C4)  
-| AD5504 #9     | 0x18      | The bottom 12 bits control the value of AD5504 9  (R3C1)  
-| AD5504 #10    | 0x19      | The bottom 12 bits control the value of AD5504 10 (R3C2)  
-| AD5504 #11    | 0x1a      | The bottom 12 bits control the value of AD5504 11 (R3C3)  
-| AD5504 #12    | 0x1b      | The bottom 12 bits control the value of AD5504 12 (R3C4)  
-| AD5504 #13    | 0x1c      | The bottom 12 bits control the value of AD5504 13 (R4C1)  
-| AD5504 #14    | 0x1d      | The bottom 12 bits control the value of AD5504 14 (R4C2)  
-| AD5504 #15    | 0x1e      | The bottom 12 bits control the value of AD5504 15 (R4C3)  
-| AD5504 #16    | 0x1f      | The bottom 12 bits control the value of AD5504 16 (R4C4)  
-| DAC7512 #1    | 0x20      | The bottom 12 bits control the value of DAC7512 1  (R1C1)
-| DAC7512 #2    | 0x21      | The bottom 12 bits control the value of DAC7512 2  (R1C2)  
-| DAC7512 #3    | 0x22      | The bottom 12 bits control the value of DAC7512 3  (R1C3)  
-| DAC7512 #4    | 0x23      | The bottom 12 bits control the value of DAC7512 4  (R1C4)  
-| DAC7512 #5    | 0x24      | The bottom 12 bits control the value of DAC7512 5  (R2C1)  
-| DAC7512 #6    | 0x25      | The bottom 12 bits control the value of DAC7512 6  (R2C2)  
-| DAC7512 #7    | 0x26      | The bottom 12 bits control the value of DAC7512 7  (R2C3)  
-| DAC7512 #8    | 0x27      | The bottom 12 bits control the value of DAC7512 8  (R2C4)  
-| DAC7512 #9    | 0x28      | The bottom 12 bits control the value of DAC7512 9  (R3C1)  
-| DAC7512 #10   | 0x29      | The bottom 12 bits control the value of DAC7512 10 (R3C2)  
-| DAC7512 #11   | 0x2a      | The bottom 12 bits control the value of DAC7512 11 (R3C3)  
-| DAC7512 #12   | 0x2b      | The bottom 12 bits control the value of DAC7512 12 (R3C4)  
-| DAC7512 #13   | 0x2c      | The bottom 12 bits control the value of DAC7512 13 (R4C1)  
-| DAC7512 #14   | 0x2d      | The bottom 12 bits control the value of DAC7512 14 (R4C2)  
-| DAC7512 #15   | 0x2e      | The bottom 12 bits control the value of DAC7512 15 (R4C3)  
-| DAC7512 #16   | 0x2f      | The bottom 12 bits control the value of DAC7512 16 (R4C4)  
-| DAC7512 #1 Step Interval | 0x30 | Sets the step interval of the DAC7512 channel 1 R1C1 when 0x40 is set to a value greater than 1.
-| DAC7512 #1 Counter | 0x40 | Sets the frequency of the steps of the DAC7512 channel 1 on R1C1. Active only when the value is greater than 1. (2-0xffff)
+| Name           | Address     | Description 
+|----------------|-------------|-------------
+| Settings       | 0x0000      | Settings Register: Bit 0 controls the Red LED on the MSP430
+| DAC7512 #0     | 0x1000      | The bottom 12 bits control the value of DAC7512 1  
+| DAC7512 #1     | 0x1001      | The bottom 12 bits control the value of DAC7512 2    
+| DAC7512 #2     | 0x1002      | The bottom 12 bits control the value of DAC7512 3    
+| DAC7512 #3     | 0x1003      | The bottom 12 bits control the value of DAC7512 4    
+| DAC7512 #4     | 0x1004      | The bottom 12 bits control the value of DAC7512 5    
+| DAC7512 #5     | 0x1005      | The bottom 12 bits control the value of DAC7512 6    
+| DAC7512 #6     | 0x1006      | The bottom 12 bits control the value of DAC7512 7    
+| DAC7512 #7     | 0x1007      | The bottom 12 bits control the value of DAC7512 8    
+| DAC7512 #8     | 0x1008      | The bottom 12 bits control the value of DAC7512 9    
+| DAC7512 #9     | 0x1009      | The bottom 12 bits control the value of DAC7512 10   
+| DAC7512 #10    | 0x100a      | The bottom 12 bits control the value of DAC7512 11   
+| DAC7512 #11    | 0x100b      | The bottom 12 bits control the value of DAC7512 12   
+| DAC7512 #12    | 0x100c      | The bottom 12 bits control the value of DAC7512 13   
+| DAC7512 #13    | 0x100d      | The bottom 12 bits control the value of DAC7512 14   
+| DAC7512 #14    | 0x100e      | The bottom 12 bits control the value of DAC7512 15   
+| DAC7512 #15    | 0x100f      | The bottom 12 bits control the value of DAC7512 16   
+| DAC7512 n      | 0x1000 or n | The bottom 12 bits contain the value of DAC7512 n 
+| DAC7512 #1023  | 0x13ff      | The bottom 12 bits contain the value of DAC7512 1023   
 
 _IMPORTANT_: For register __0x40__ the frequency calculation can be approximated as follows:
 

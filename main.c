@@ -1,9 +1,11 @@
 //***************************************************************************************
-//  MSP430G2553 USCI_A UART Mode. Rx and Tx
+//  MSP430G2553 Based Controller board for the 1024 Channel Setup.
+//  For use with the Controller setup designed by Jeff Kittredge and
+//  4 256 channel ADC boards designed by David Freedman.
 //
 //  C. Woodall < cwoodall at bu.edu >
 //  Boston University, NASA MUX
-//  July 2013
+//  November 2013
 //  Built with Code Composer Studio v5
 //***************************************************************************************
 #define __DEBUG__
@@ -28,15 +30,9 @@ static uint16_t settings_reg = 0x0001;
 static uint8_t ignore_crc = 0;
 static uart_dev_t uart_dev;
 static spi_device_t dac7512;
+//static uint16_t dac7512_value_reg[1024];
 
-
-static uint16_t dac7512_value_reg[16] = {
-  0, 0, 0, 0,
-  0, 0, 0, 0,
-  0, 0, 0, 0,
-  0, 0, 0, 0
-};
-
+/**
 static uint16_t dac7512_step_reg[16] = {
   0, 0, 0, 0,
   0, 0, 0, 0,
@@ -50,10 +46,10 @@ static uint16_t dac7512_counter_reg[16] = {
   0, 0, 0, 0,
   0, 0, 0, 0
 };
+**/
 
 void main(void)
 {
-
   /** Disable Watchdog Timer and Setup Clocks **/
   WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
   BCSCTL1 = CALBC1_16MHZ;		// Run at 16 MHz
@@ -73,10 +69,10 @@ void main(void)
   //Enable the interrupt for TACCR0 match
   TA1CCTL0 = CCIE;
   */
-
+  uint16_t i;
   /** Initialize all DAC7512's to initial values. **/
-  for (uint8_t i = 0; i < 16; i++) {
-    DAC7512_send(&dac7512, dac7512_value_reg[i], (i>>2)&0x3, i&0x3);
+  for (i = 0; i < 1024; i++) {
+    DAC7512_send(&dac7512, 0, i);
   }
 
   /** Initialize UART **/
@@ -117,27 +113,16 @@ __interrupt void USCI0RX_ISR(void)
 					// Find command
 					switch (vector_uint8_get(&uart_dev.rxbuf, 0)) {
 					case UART_COMMANDS_WR_REG: // Write Register command
-						// rxbuf should be 4 long (command + addr + data)
-						if (uart_dev.rxbuf.end == 4) {
-						  uint8_t addr = vector_uint8_get(&uart_dev.rxbuf, 1);
-							if (addr == 0x00) {
-								settings_reg = (uint16_t)(((uint16_t)vector_uint8_get(&uart_dev.rxbuf, 2) << 8) | vector_uint8_get(&uart_dev.rxbuf, 3));
+						// rxbuf should be 5 long (command + addr + data)
+						if (uart_dev.rxbuf.end == 5) {
+						  uint16_t addr = (uint16_t)((uint16_t) vector_uint8_get(&uart_dev.rxbuf, 1)<<8) | vector_uint8_get(&uart_dev.rxbuf, 2);
+						  uint16_t value = (uint16_t)(((uint16_t)vector_uint8_get(&uart_dev.rxbuf, 3) << 8) | vector_uint8_get(&uart_dev.rxbuf, 4));
+							if (addr == 0x0000) {
+								settings_reg = value;
 								uart_dev_send_ack(&uart_dev);
-							} else if ((addr & 0xf0) == 0x20) {
+							} else if ((addr & 0xf000) == 0x1000) {
 							  // DAC7512
-                dac7512_value_reg[addr & 0x0f] = (uint16_t)(((uint16_t)vector_uint8_get(&uart_dev.rxbuf, 2) << 8) | vector_uint8_get(&uart_dev.rxbuf, 3));
-                if ((dac7512_counter_reg[0] == 0) && ((addr & 0x0f) == 0)) {
-                  DAC7512_send(&dac7512, dac7512_value_reg[addr & 0x0f], (addr>>2)&0x3, addr&0x3);
-                }
-                uart_dev_send_ack(&uart_dev);
-              } else if ((addr & 0xf0) == 0x30) {
-                // DAC7512
-                dac7512_step_reg[addr & 0x0f] = (uint16_t)(((uint16_t)vector_uint8_get(&uart_dev.rxbuf, 2) << 8) | vector_uint8_get(&uart_dev.rxbuf, 3));
-
-                uart_dev_send_ack(&uart_dev);
-              } else if ((addr & 0xf0) == 0x40) {
-                // DAC7512
-                dac7512_counter_reg[addr & 0x0f] = (uint16_t)(((uint16_t)vector_uint8_get(&uart_dev.rxbuf, 2) << 8) | vector_uint8_get(&uart_dev.rxbuf, 3));
+                DAC7512_send(&dac7512, value, addr & 0x03ff);
                 uart_dev_send_ack(&uart_dev);
 							} else {
 								uart_dev_send_err(&uart_dev, UART_ERRORS_BAD_ADDRESS);
@@ -153,8 +138,8 @@ __interrupt void USCI0RX_ISR(void)
 
 							if (addr == 0x00) {
 								uart_dev_send_read_ack(&uart_dev, settings_reg);
-              } else if (addr & 0x20) {
-                uart_dev_send_read_ack(&uart_dev, dac7512_value_reg[addr & 0x0f]);
+             // } else if (addr & 0x20) {
+     //           uart_dev_send_read_ack(&uart_dev, dac7512_value_reg[addr & 0x0f]);
 							} else {
 								uart_dev_send_err(&uart_dev, UART_ERRORS_BAD_ADDRESS);
 							}
