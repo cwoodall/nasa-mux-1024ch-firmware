@@ -77,7 +77,7 @@ void main(void)
 
   /** Initialize UART **/
   uart_dev_init(&uart_dev);
-  setupUART(9600, UART_RXIE); // N = f_clk/Baudrate, Baudrate == 9600
+  setupUART(9600 , UART_RXIE); // N = f_clk/Baudrate, Baudrate == 9600
 
   /** Interrupts **/
   __bis_SR_register(GIE); // interrupts enabled

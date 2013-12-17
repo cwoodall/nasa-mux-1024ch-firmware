@@ -41,7 +41,7 @@ void DAC7512_init(spi_device_t *dev) {
   DAC7512_chip_release(0);
 }
 
-void DAC7512_send(spi_device_t *dev, uint16_t data, uint8_t addr) {
+void DAC7512_send(spi_device_t *dev, uint16_t data, uint16_t addr) {
   // Row is bits 16 downto 8 (where each bit represents a row)
   // Col is bits 7 downto 0 (where each bit represents a column)
   SPI_send(dev, data, addr);
